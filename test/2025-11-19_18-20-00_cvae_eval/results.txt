@@ -1,0 +1,23 @@
+==================================================
+CVAE-MDN Trajectory Prediction Evaluation
+==================================================
+
+Model: training\training_cvae\2025-11-19_18-02-09_test_run\model_cvae_best_2025-11-19_18-02-09.pt
+Dataset: kitti_dataset.json
+Test split: [1, 2, 15, 18, 29, 32, 52, 70]
+Number of predictions: 5
+Train size: 8613
+Test size: 2907
+
+==================================================
+METRICS
+==================================================
+Average Displacement Error (ADE): 1.506m
+ADE @ 1s: 0.37m
+ADE @ 2s: 0.618m
+ADE @ 3s: 0.982m
+
+Final Displacement Error @ 1s: 0.553m
+Final Displacement Error @ 2s: 1.176m
+Final Displacement Error @ 3s: 2.226m
+Final Displacement Error @ 4s: 3.866m
