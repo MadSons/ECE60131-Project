@@ -16,7 +16,7 @@ where:
 
 The model is trained as a generative model: it defines an explicit latent variable model $\hat{p}_\theta(x,y|c)$ and learns $\theta$ by maximizing a variational lower bound on the conditional log-likelihood $\log \hat{p}_\theta(y|c)$.
 
-## 1. Generative Model (Class Notation)
+## 1. Generative Model
 
 We introduce a latent variable $x$ that captures high-level intentions/modes of future motion (e.g., going straight, turning, changing lanes). For each observed pair $(c,y)$, the generative story is:
 
