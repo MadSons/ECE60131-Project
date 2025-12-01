@@ -210,9 +210,9 @@ info: cvae_cond_prior_beta
 
 The model generates multiple diverse trajectory predictions for each scenario, capturing the multimodal nature of future motion:
 
-![Example 4](test\2025-12-01_14-01-40_cvae_eval_14-14-19\example_004.png)
+![Example 4](https://github.com/MadSons/ECE60131-Project/blob/main/test/2025-12-01_14-06-25_cvae_eval_14-14-19/example_004.png)
 
-![Example 5](test\2025-12-01_14-01-40_cvae_eval_14-14-19\example_005.png)
+![Example 5](https://github.com/MadSons/ECE60131-Project/blob/main/test/2025-12-01_14-06-25_cvae_eval_14-14-19/example_005.png)
 
 ### 7.3 Quantitative Results
 
