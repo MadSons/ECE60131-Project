@@ -24,30 +24,28 @@ class ValidatorCVAE:
     Evaluator for a CVAE trajectory predictor on the KITTI / MANTRA-style dataset.
 
     - Loads dataset_invariance.TrackDataset
-    - Loads a trained CVAE_Predictor
+    - Loads a trained CVAE_Predictor (same architecture as in trainer_cvae.py)
     - Draws K samples per past trajectory
-    - Computes best-of-K ADE/FDE metrics (same style as MANTRA)
+    - Computes best-of-K ADE/FDE metrics
+    - Saves ~10 random qualitative examples (past, GT future, K predicted futures)
     """
 
     def __init__(self, config):
         self.config = config
 
-        # Device setup
+        # ---------------- Device setup ----------------
         self.device = torch.device(
             f"cuda:{config.device}" if torch.cuda.is_available() and config.cuda else "cpu"
         )
         if torch.cuda.is_available() and config.cuda:
             torch.cuda.set_device(config.device)
 
-        # Output folder
-        self.name_test = str(datetime.datetime.now())[:19].replace(' ', '_').replace(':', '-')
-        self.folder_test = os.path.join(
-            "test",
-            f"{self.name_test}_{config.info}"
-        )
+        # ---------------- Output folder ----------------
+        self.name_test = str(datetime.datetime.now())[:19].replace(" ", "_").replace(":", "-")
+        self.folder_test = os.path.join("test", f"{self.name_test}_{config.info}")
         os.makedirs(self.folder_test, exist_ok=True)
 
-        # Dataset
+        # ---------------- Dataset ----------------
         print("Creating dataset...")
         with open(config.dataset_file, "r") as f:
             tracks = json.load(f)
@@ -86,20 +84,16 @@ class ValidatorCVAE:
         )
         print(f"Dataset created. Train size: {len(self.data_train)}, Test size: {len(self.data_test)}")
 
-        # Build or load model
+        # ---------------- Model ----------------
         self.model = self._build_and_load_model()
-        
-        # Print Model Parameter Count
+
         total_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         print(f"Total trainable parameters in model: {total_params}")
 
-        # For distances (just using torch.norm directly, but keep pairwise if needed)
         self.EuclDistance = nn.PairwiseDistance(p=2)
-        
-        # ----------------------------------------------------------------------
-        # Choose which test samples to visualize (10 random)
-        # ----------------------------------------------------------------------
-        num_examples = 5
+
+        # ---------------- Choose random examples to visualize ----------------
+        num_examples = 10   # we want 10 qualitative examples
         total = len(self.data_test)
         self.example_ids = set(
             np.random.choice(total, size=min(num_examples, total), replace=False)
@@ -110,44 +104,48 @@ class ValidatorCVAE:
     # -------------------------------------------------------------------------
     def _build_and_load_model(self):
         """
-        Load the model from a checkpoint. Handles both:
-        - full pickled nn.Module
-        - state_dict, in which case we reconstruct the CVAE_Predictor.
+        Load the model from a checkpoint saved by TrainerCVAE.
+
+        TrainerCVAE saves:
+            torch.save(self.model.state_dict(), path)
+
+        So here we:
+        - Reconstruct CVAE_Predictor with the same hyperparameters
+        - Load the state_dict
         """
         print(f"Loading model from: {self.config.model}")
         loaded_obj = torch.load(self.config.model, map_location="cpu", weights_only=False)
 
+        # We expect a raw state_dict
+        if isinstance(loaded_obj, dict) and all(torch.is_tensor(v) for v in loaded_obj.values()):
+            model = CVAE_Predictor(
+                past_len=self.config.past_len,
+                future_len=self.config.future_len,
+                dim_embedding_key=self.config.dim_embedding_key,
+                latent_dim=self.config.latent_dim,
+                use_scene=True,
+                use_cuda=self.config.cuda,
+            )
+            model.load_state_dict(loaded_obj, strict=True)
+            model.to(self.device)
+            print("Reconstructed CVAE_Predictor from state_dict.")
+            return model
+
+        # If for some reason you saved the full nn.Module instead:
         if isinstance(loaded_obj, torch.nn.Module):
-            # Model object was pickled directly
             model = loaded_obj
             model.to(self.device)
             print("Loaded full nn.Module from checkpoint.")
             return model
 
-        elif isinstance(loaded_obj, dict) and all(
-            isinstance(v, torch.Tensor) for v in loaded_obj.values()
-        ):
-            # Raw state_dict: reconstruct CVAE_Predictor using config hyperparams
-            settings = {
-                "use_cuda": self.config.cuda,
-                "dim_embedding_key": self.config.dim_embedding_key,
-                "latent_dim": self.config.latent_dim,
-                "past_len": self.config.past_len,
-                "future_len": self.config.future_len,
-                "scene_channels": 4,  # from TrackDataset one-hot (background/street/sidewalk/veg)
-            }
-            model = CVAE_Predictor(settings)
-            model.load_state_dict(loaded_obj, strict=False)
-            model.to(self.device)
-            print("Reconstructed CVAE_Predictor from state_dict.")
-            return model
+        raise RuntimeError(
+            f"Unrecognized object in torch.load({self.config.model!r}): "
+            "expected a state_dict or an nn.Module"
+        )
 
-        else:
-            raise RuntimeError(
-                f"Unrecognized object in torch.load({self.config.model!r}): "
-                "expected an nn.Module or a state_dict"
-            )
-            
+    # -------------------------------------------------------------------------
+    # Visualization
+    # -------------------------------------------------------------------------
     def draw_track(
         self,
         past,
@@ -160,7 +158,7 @@ class ValidatorCVAE:
         horizon_dist=None,
     ):
         """
-        Plot past, future, and ALL predicted trajectories (K=5 predicted futures).
+        Plot past, future, and ALL predicted trajectories (K predicted futures).
         """
 
         angle = float(angle)
@@ -178,10 +176,9 @@ class ValidatorCVAE:
         fig = plt.figure()
         plt.imshow(scene_track, cmap=cm)
 
-        # Rotation matrix (undo padding rotation)
+        # Rotation matrix (undo rotation used in dataset)
         matRot = cv2.getRotationMatrix2D((0, 0), -angle, 1)
 
-        # Rotate + scale coordinates
         def transform(coords):
             coords_np = coords.cpu().numpy()
             coords_np = cv2.transform(coords_np.reshape(-1, 1, 2), matRot).squeeze()
@@ -191,17 +188,30 @@ class ValidatorCVAE:
         past_scene = transform(past)
         future_scene = transform(future)
 
-        plt.plot(past_scene[:, 0], past_scene[:, 1],
-                c="blue", linewidth=1, marker="o", markersize=1, label="past")
+        plt.plot(
+            past_scene[:, 0],
+            past_scene[:, 1],
+            c="blue",
+            linewidth=1,
+            marker="o",
+            markersize=1,
+            label="past",
+        )
 
-        plt.plot(future_scene[:, 0], future_scene[:, 1],
-                c="green", linewidth=1, marker="o", markersize=1, label="future")
+        plt.plot(
+            future_scene[:, 0],
+            future_scene[:, 1],
+            c="green",
+            linewidth=1,
+            marker="o",
+            markersize=1,
+            label="future",
+        )
 
-        # Predictions: plot all K trajectories
+        # Predictions: K trajectories
         if preds is not None:
             K = preds.shape[0]
             color_map = pl.cm.Reds(np.linspace(1, 0.3, K))
-
             for k in range(K):
                 pred_scene = transform(preds[k])
                 plt.plot(
@@ -227,7 +237,6 @@ class ValidatorCVAE:
         plt.savefig(os.path.join(path, name), dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-
     # -------------------------------------------------------------------------
     # Evaluation
     # -------------------------------------------------------------------------
@@ -249,7 +258,7 @@ class ValidatorCVAE:
         horizon10s = horizon20s = horizon30s = horizon40s = 0.0
 
         n_total = len(loader.dataset)
-        global_counter = 0  # counts samples across batches
+        global_counter = 0
         saved_count = 0
 
         with torch.no_grad():
@@ -266,21 +275,14 @@ class ValidatorCVAE:
                 scene_one_hot,
             ) in tqdm.tqdm(loader):
 
-                past = past.to(self.device)                       # [B, T_p, 2]
-                future = future.to(self.device)                   # [B, T_f, 2]
-                scene_one_hot = scene_one_hot.to(self.device)     # [B, H, W, 4]
+                past = past.to(self.device)                   # [B, T_p, 2]
+                future = future.to(self.device)               # [B, T_f, 2]
+                scene_one_hot = scene_one_hot.to(self.device) # [B, H, W, 4]
 
-                # ------------------------------------------------------------------
-                # Sampling from the CVAE
-                # ------------------------------------------------------------------
-                # IMPORTANT:
-                # We assume your model has a method:
-                #   sample(past, scene_one_hot, num_samples) -> [B, K, T, 2]
-                # If your name/signature differs, adapt this line accordingly.
-                # ------------------------------------------------------------------
+                # Sample from CVAE: [B, K, T, 2]
                 pred = self.model.sample(
                     past, scene_one_hot, num_samples=num_samples
-                )  # [B, K, T, 2]
+                )
 
                 if pred.dim() != 4:
                     raise RuntimeError(
@@ -288,42 +290,45 @@ class ValidatorCVAE:
                     )
 
                 B, K, T, _ = pred.shape
-                assert T == future_len, f"Future length mismatch: pred T={T}, config={future_len}"
+                assert (
+                    T == future_len
+                ), f"Future length mismatch: pred T={T}, config.future_len={future_len}"
 
-                # Compute distances to GT
+                # Distances to ground truth
                 future_rep = future.unsqueeze(1).repeat(1, K, 1, 1)  # [B, K, T, 2]
                 distances = torch.norm(pred - future_rep, dim=3)      # [B, K, T]
-                distances_mean = torch.mean(distances, dim=2)         # [B, K] (ADE per sample)
+                distances_mean = torch.mean(distances, dim=2)         # [B, K]
                 index_min = torch.argmin(distances_mean, dim=1)       # [B]
 
                 # Best sample per trajectory
                 best_distances = distances[torch.arange(B), index_min]  # [B, T]
 
-                # ADE over entire horizon
+                # ADE over full horizon
                 eucl_mean += torch.sum(torch.mean(best_distances[:, :future_len], dim=1)).item()
 
-                # ADE partial horizons
+                # ADE partial horizons (10 steps ~ 1s)
                 ADE_1s += torch.sum(torch.mean(best_distances[:, :10], dim=1)).item()
                 ADE_2s += torch.sum(torch.mean(best_distances[:, :20], dim=1)).item()
                 ADE_3s += torch.sum(torch.mean(best_distances[:, :30], dim=1)).item()
 
-                # FDE horizons (assuming 10 steps = 1s)
+                # FDE horizons
                 horizon10s += torch.sum(best_distances[:, 9]).item()
                 horizon20s += torch.sum(best_distances[:, 19]).item()
                 horizon30s += torch.sum(best_distances[:, 29]).item()
                 horizon40s += torch.sum(best_distances[:, 39]).item()
-                
+
+                # ---------------- Save up to 10 qualitative examples ----------------
                 batch_size = past.shape[0]
                 for i in range(batch_size):
                     if global_counter in self.example_ids and saved_count < 10:
 
                         best_k = index_min[i].item()
-                        best_pred = pred[i, best_k]                   # [40,2]
-                        all_preds = pred[i]                           # [5,40,2]
-                        d = torch.norm(best_pred - future[i], dim=1)  # [40]
+                        best_pred = pred[i, best_k]                   # [T, 2]
+                        all_preds = pred[i]                           # [K, T, 2]
+                        d = torch.norm(best_pred - future[i], dim=1)  # [T]
 
                         def fd(idx):
-                            return round(d[min(idx, 39)].item(), 3)
+                            return round(d[min(idx, future_len - 1)].item(), 3)
 
                         horizon_dist = [fd(9), fd(19), fd(29), fd(39)]
 
@@ -342,6 +347,7 @@ class ValidatorCVAE:
                         )
 
                         saved_count += 1
+
                     global_counter += 1
 
         # Normalize by dataset size
@@ -405,17 +411,17 @@ def parse_args():
     parser.add_argument(
         "--model",
         type=str,
-        default='training\\training_cvae\\2025-11-21_13-44-27_cvae_cond_prior_beta\\cvae_best.pt',
-        help="Path to trained CVAE model (.pt / .pth).",
+        default="training/training_cvae/2025-11-21_14-14-19_cvae_cond_prior_beta/cvae_best.pt",
+        help="Path to trained CVAE model (.pt) saved by TrainerCVAE.",
     )
     parser.add_argument(
         "--info",
         type=str,
-        default="cvae_eval",
+        default="cvae_eval_14-14-19",
         help="Info string appended to test folder name.",
     )
 
-    # Model hyperparams (only needed if loading from state_dict)
+    # Model hyperparams (must match training!)
     parser.add_argument(
         "--dim_embedding_key",
         type=int,
@@ -425,8 +431,8 @@ def parse_args():
     parser.add_argument(
         "--latent_dim",
         type=int,
-        default=16,
-        help="Latent dimension z.",
+        default=8,   # <- match trainer_cvae.py default
+        help="Latent dimension.",
     )
     parser.add_argument(
         "--past_len",
@@ -445,7 +451,7 @@ def parse_args():
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=64,
+        default=32,
         help="Evaluation batch size.",
     )
     parser.add_argument(
@@ -457,7 +463,7 @@ def parse_args():
     parser.add_argument(
         "--num_samples",
         type=int,
-        default=5,
+        default=10,
         help="Number of trajectory samples per agent (K for best-of-K).",
     )
 
@@ -481,7 +487,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     print("===== CVAE Evaluation =====")
-    print(f"Model: {args.model}")
+    print(f"Model:   {args.model}")
     print(f"Dataset: {args.dataset_file}")
     print(f"Batch size: {args.batch_size}, num_samples: {args.num_samples}")
 

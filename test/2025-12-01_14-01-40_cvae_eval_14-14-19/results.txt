@@ -1,0 +1,16 @@
+CVAE TEST RESULTS
+model: training/training_cvae/2025-11-21_14-14-19_cvae_cond_prior_beta/cvae_best.pt
+split test: [1, 2, 15, 18, 29, 32, 52, 70]
+num_predictions (samples): 5
+TRAIN size: 8613
+TEST size: 2907
+
+error 1s (FDE 1s): 0.3837 m
+error 2s (FDE 2s): 0.9112 m
+error 3s (FDE 3s): 1.7629 m
+error 4s (FDE 4s): 3.0912 m
+
+ADE 1s: 0.2335 m
+ADE 2s: 0.4431 m
+ADE 3s: 0.7444 m
+ADE 4s (full): 1.1705 m
