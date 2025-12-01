@@ -14,7 +14,7 @@ where:
   - the past trajectory (2 seconds of 2D points)
   - a top-down scene representation (one-hot raster of lanes, road, etc.)
 
-The model is trained as a generative model: it defines an explicit latent variable model $\hat{p}_\theta(x,y|c)$ and learns $\theta$ by maximizing a variational lower bound on the conditional log-likelihood $\log \hat{p}_\theta(y|c)$.
+The model is trained as a generative model: it defines an explicit latent variable model $$\hat{p}_\theta(x,y|c)$$ and learns $$\theta$$ by maximizing a variational lower bound on the conditional log-likelihood $$\log \hat{p}_\theta(y|c)$$.
 
 ## 1. Generative Model
 
