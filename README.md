@@ -18,7 +18,7 @@ The model is trained as a generative model: it defines an explicit latent variab
 
 ## 1. Generative Model
 
-We introduce a latent variable $x$ that captures high-level intentions/modes of future motion (e.g., going straight, turning, changing lanes). For each observed pair $(c,y)$, the generative story is:
+We introduce a latent variable $x$ that captures high-level intentions/modes of future motion (e.g., going straight, turning, changing lanes). For each observed pair $(c,y)$:
 
 1. Sample latent state from a conditional prior: $\hat{p}_\theta(x|c)$
 2. Given $(x,c)$, sample the future trajectory: $\hat{p}_\theta(y|x,c)$
