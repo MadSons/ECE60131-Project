@@ -40,8 +40,8 @@ def non_ideal_params(gpu_id) -> CrossSimParameters:
     params.xbar.device.read_noise.model = "SONOS"
     params.xbar.device.programming_error.model = "SONOS"
     params.xbar.device.drift_error.model = "SONOS"
-    params.simulation.useGPU = True
-    params.simulation.gpu_id = gpu_id
+    params.simulation.useGPU = True if torch.cuda.is_available() else False
+    params.simulation.gpu_id = gpu_id if torch.cuda.is_available() else None
     return params
 
 class Validator():
