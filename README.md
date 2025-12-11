@@ -16,9 +16,9 @@ where:
 
 The model is trained as a generative model: it defines an explicit latent variable model $\hat{p}_\theta(x,y|c)$ and learns $\theta$ by maximizing a variational lower bound on the conditional log-likelihood $\log \hat{p}_\theta(y|c)$.
 
-## 1. Generative Model (Class Notation)
+## 1. Generative Model
 
-We introduce a latent variable $x$ that captures high-level intentions/modes of future motion (e.g., going straight, turning, changing lanes). For each observed pair $(c,y)$, the generative story is:
+We introduce a latent variable $x$ that captures high-level intentions/modes of future motion (e.g., going straight, turning, changing lanes). For each observed pair $(c,y)$:
 
 1. Sample latent state from a conditional prior: $\hat{p}_\theta(x|c)$
 2. Given $(x,c)$, sample the future trajectory: $\hat{p}_\theta(y|x,c)$
@@ -210,9 +210,9 @@ info: cvae_cond_prior_beta
 
 The model generates multiple diverse trajectory predictions for each scenario, capturing the multimodal nature of future motion:
 
-![Example 4](test\2025-12-01_14-01-40_cvae_eval_14-14-19\example_004.png)
+![Example 4](https://github.com/MadSons/ECE60131-Project/blob/main/test/2025-12-01_14-06-25_cvae_eval_14-14-19/example_004.png)
 
-![Example 5](test\2025-12-01_14-01-40_cvae_eval_14-14-19\example_005.png)
+![Example 5](https://github.com/MadSons/ECE60131-Project/blob/main/test/2025-12-01_14-06-25_cvae_eval_14-14-19/example_005.png)
 
 ### 7.3 Quantitative Results
 
