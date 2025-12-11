@@ -1,0 +1,17 @@
+Model,IRM,Analog,Metric,Mean,Std,NumRuns
+MANTRA_default,True,False,eucl_mean,1.161000,0.000000,1
+MANTRA_default,True,False,ADE_1s,0.211000,0.000000,1
+MANTRA_default,True,False,ADE_2s,0.438000,0.000000,1
+MANTRA_default,True,False,ADE_3s,0.738000,0.000000,1
+MANTRA_default,True,False,horizon10s,0.382000,0.000000,1
+MANTRA_default,True,False,horizon20s,0.919000,0.000000,1
+MANTRA_default,True,False,horizon30s,1.736000,0.000000,1
+MANTRA_default,True,False,horizon40s,3.097000,0.000000,1
+MANTRA_default,True,True,eucl_mean,1.436667,0.057848,3
+MANTRA_default,True,True,ADE_1s,0.411000,0.090670,3
+MANTRA_default,True,True,ADE_2s,0.658333,0.101500,3
+MANTRA_default,True,True,ADE_3s,0.976000,0.080802,3
+MANTRA_default,True,True,horizon10s,0.637333,0.132870,3
+MANTRA_default,True,True,horizon20s,1.151000,0.091755,3
+MANTRA_default,True,True,horizon30s,2.049667,0.085125,3
+MANTRA_default,True,True,horizon40s,3.542000,0.222290,3

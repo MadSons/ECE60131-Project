@@ -7,7 +7,8 @@ import numpy as np
 from types import SimpleNamespace
 import eval_cvae
 
-sys.path.insert(0, 'cross_sim_development')
+sys.path.insert(0, 'cross-sim') # I used cross_sim_development here for AnalogGRU simulation
+
 import simulator
 from simulator import CrossSimParameters
 from simulator.algorithms.dnn.torch.convert import from_torch
@@ -72,8 +73,8 @@ def parse_args():
         help="GPU device ID to use (default: 0)"
     )
     parser.add_argument(
-        "--analog_runs", type=int, default=10,
-        help="number of times to run analog tests for averaging (default: 10)"
+        "--analog_runs", type=int, default=3,
+        help="number of times to run analog tests for averaging (default: 3)"
     )
 
     return parser.parse_args()
@@ -90,9 +91,6 @@ def run_single_evaluation(config, run_label):
     if config.analog:
         print("Converting model to analog...")
         validator.model = from_torch(validator.model, non_ideal_params(config.device), bias_rows=1)
-        # print model layers
-        print(validator.model)
-        sys.exit()
     
     # Run evaluation
     metrics = validator.evaluate(validator.test_loader)
@@ -187,7 +185,7 @@ def main():
         all_results[(model_label, analog_flag)] = analog_results
 
     # Ensure /results directory exists
-    results_dir = "results_multiple_cvae"
+    results_dir = "results_multiple_cvae_cross_sim"
     os.makedirs(results_dir, exist_ok=True)
 
     # Write a detailed summary text file with statistics
@@ -233,7 +231,7 @@ def main():
         x_labels.append(label)
 
     # Set up colors for different models
-    model_colors = {'CVAE_default': '#2E86AB'}
+    model_colors = {'CVAE_default': '#2E86AB', 'CVAE': '#E74C3C'}
 
     # Create subplots for better organization
     fig, axes = plt.subplots(2, 4, figsize=(20, 10))

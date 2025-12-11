@@ -1,7 +1,7 @@
 # CVAE for Scene-Aware Trajectory Prediction
 
 This project implements a conditional variational autoencoder (CVAE) for multimodal trajectory prediction on the KITTI-style vehicle trajectory dataset with scene context.
-
+git submodule update --init --recursive
 ## Overview
 
 The goal is to model the conditional distribution of future trajectories given the past trajectory and a rasterized scene:

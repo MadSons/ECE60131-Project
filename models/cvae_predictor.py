@@ -221,6 +221,8 @@ class CVAE_Predictor(nn.Module):
         # Initialize GRU hidden state
         dec_init = self.fc_dec_init(dec_ctx)   # [B, 96]
         dec_init = dec_init.unsqueeze(0)       # [1, B, 96]
+        dec_init = dec_init.contiguous()
+
 
         # GRU input should be [1, B, 96]
         input_dec = torch.zeros(1, B, 2 * self.dim_embedding_key, device=past.device)
@@ -229,6 +231,8 @@ class CVAE_Predictor(nn.Module):
         prediction = []
 
         state_dec = dec_init
+        state_dec = state_dec.contiguous()
+
 
         for t in range(self.future_len):
             out, state_dec = self.decoder(input_dec, state_dec)  # [1, B, 96]
@@ -237,6 +241,7 @@ class CVAE_Predictor(nn.Module):
             prediction.append(coords_next)
             present = coords_next
             input_dec = torch.zeros_like(input_dec)
+            input_dec = input_dec.contiguous()
 
         return torch.cat(prediction, dim=1)
 

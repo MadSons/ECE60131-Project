@@ -51,8 +51,8 @@ def parse_args():
         help="GPU device ID to use (default: 0)"
     )
     parser.add_argument(
-        "--analog_runs", type=int, default=10,
-        help="number of times to run analog tests for averaging (default: 10)"
+        "--analog_runs", type=int, default=3,
+        help="number of times to run analog tests for averaging (default: 3)"
     )
 
     return parser.parse_args()
@@ -177,7 +177,7 @@ def main():
             all_results[(model_label, irm_flag, analog_flag)] = analog_results
 
     # ─── ensure /results directory exists ──────────────────────────────────────
-    results_dir = "results_multiple_mantra"
+    results_dir = "results_multiple_mantra_cross-sim"
     os.makedirs(results_dir, exist_ok=True)
 
     # ─── write a detailed summary text file with statistics ────────────────

@@ -23,7 +23,7 @@ import tqdm
 import pdb
 import sys
 
-sys.path.insert(0, 'cross_sim_development')
+sys.path.insert(0, 'cross-sim') # I used cross_sim_development for AnalogGRU simulation
 import simulator
 from simulator import CrossSimParameters
 from simulator.algorithms.dnn.torch.convert import from_torch
