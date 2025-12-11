@@ -163,6 +163,8 @@ python compare_metrics.py
 
 ### Install Dependencies
 
+I used Python 3.10
+
 ```bash
 pip install -r requirements.txt
 ```
