@@ -169,7 +169,8 @@ I used Python 3.10
 pip install -r requirements.txt
 ```
 
-You possibly have to change cupy-cuda11x to cupy or another version based on your cuda version.
+You possibly have to change cupy-cuda11x to cupy or another version based on your cuda version as well as the PyTorch download version.
+My code supports running on a GPU, can run on CPU by changing a few lines of code.
 
 ### Initialize CrossSim Submodule
 
