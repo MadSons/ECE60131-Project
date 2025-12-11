@@ -6,14 +6,13 @@ import math
 class CVAE_Predictor(nn.Module):
     """
     Conditional VAE for trajectory prediction:
-        p(future | past, scene) = ∫ p(future | past, scene, z) p(z | past, scene) dz
+        p(future | past, scene) = integral p(future | past, scene, z) p(z | past, scene) dz
 
     - Encoder: q(z | past, future, scene)
     - Conditional prior: p(z | past, scene)
     - Decoder: p(future | past, scene, z)
 
     This implementation predicts a single future trajectory given z
-    (you get multi-modality by sampling multiple z's per past).
     """
 
     def __init__(
@@ -21,7 +20,7 @@ class CVAE_Predictor(nn.Module):
         past_len=20,
         future_len=40,
         dim_embedding_key=48,
-        latent_dim=16,
+        latent_dim=8,
         use_scene=True,
         use_cuda=True,
     ):
@@ -184,7 +183,7 @@ class CVAE_Predictor(nn.Module):
 
     def prior_p(self, h_past, h_scene):
         """
-        p(z | past, scene) – conditional prior.
+        p(z | past, scene) - conditional prior.
         h_past: [B, D]
         h_scene: [B, D] or None
         returns mu_p, logvar_p

@@ -1,0 +1,12 @@
+**** CVAE_analog_run10 ****
+Model checkpoint: training/training_cvae/2025-11-21_14-14-19_cvae_cond_prior_beta/cvae_best.pt
+Analog mode: True
+
+eucl_mean: 2.331850
+ADE_1s: 0.771116
+ADE_2s: 1.271490
+ADE_3s: 1.786214
+horizon10s: 1.255215
+horizon20s: 2.231832
+horizon30s: 3.294531
+horizon40s: 4.589452

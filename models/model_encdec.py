@@ -1,3 +1,8 @@
+"""
+This file contains code modified from the following source:
+https://github.com/Marchetz/MANTRA-CVPR20?tab=readme-ov-file
+"""
+
 import torch
 import torch.nn as nn
 

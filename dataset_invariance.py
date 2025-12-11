@@ -1,3 +1,8 @@
+"""
+This file contains code modified from the following source:
+https://github.com/Marchetz/MANTRA-CVPR20?tab=readme-ov-file
+"""
+
 import numpy as np
 import torch
 import torch.utils.data as data

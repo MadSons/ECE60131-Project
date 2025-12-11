@@ -318,7 +318,7 @@ class ValidatorCVAE:
                 horizon40s += torch.sum(best_distances[:, 39]).item()
 
                 # ---------------- Save up to 10 qualitative examples ----------------
-                batch_size = past.shape[0]
+                """batch_size = past.shape[0]
                 for i in range(batch_size):
                     if global_counter in self.example_ids and saved_count < 10:
 
@@ -348,7 +348,7 @@ class ValidatorCVAE:
 
                         saved_count += 1
 
-                    global_counter += 1
+                    global_counter += 1"""
 
         # Normalize by dataset size
         metrics = {
@@ -431,7 +431,7 @@ def parse_args():
     parser.add_argument(
         "--latent_dim",
         type=int,
-        default=8,   # <- match trainer_cvae.py default
+        default=8,
         help="Latent dimension.",
     )
     parser.add_argument(
@@ -463,7 +463,7 @@ def parse_args():
     parser.add_argument(
         "--num_samples",
         type=int,
-        default=10,
+        default=5,
         help="Number of trajectory samples per agent (K for best-of-K).",
     )
 

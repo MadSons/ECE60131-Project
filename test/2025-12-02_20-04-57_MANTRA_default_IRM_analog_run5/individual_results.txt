@@ -1,0 +1,12 @@
+**** MANTRA_default_IRM_analog_run5 ****
+Model checkpoint: pretrained_models/MANTRA/model_IRM_statedict.pt
+Memories folder: pretrained_models/MANTRA/memories/
+
+eucl_mean: 1.86
+ADE_1s: 0.53
+ADE_2s: 0.965
+ADE_3s: 1.357
+horizon10s: 0.971
+horizon20s: 1.729
+horizon30s: 2.535
+horizon40s: 4.254

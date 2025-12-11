@@ -1,3 +1,8 @@
+"""
+This file contains code modified from the following source:
+https://github.com/Marchetz/MANTRA-CVPR20?tab=readme-ov-file
+"""
+
 import os
 import matplotlib.pylab as pl
 from matplotlib.colors import LinearSegmentedColormap
@@ -18,6 +23,27 @@ import tqdm
 import pdb
 import sys
 
+sys.path.insert(0, 'cross_sim_development')
+import simulator
+from simulator import CrossSimParameters
+from simulator.algorithms.dnn.torch.convert import from_torch
+
+def non_ideal_params(gpu_id) -> CrossSimParameters:
+    """Return CrossSimParameters with error models enabled."""
+    params = CrossSimParameters()
+    params.xbar.device.Rmin = 50e3
+    params.xbar.device.Rmax = 50e6
+    params.xbar.device.Vread = params.xbar.device.Rmin * 1e-6
+    params.xbar.device.programming_error.enable = True
+    params.xbar.device.read_noise.enable = False
+    params.xbar.device.drift_error.enable = False
+    params.xbar.device.read_noise.model = "SONOS"
+    params.xbar.device.programming_error.model = "SONOS"
+    params.xbar.device.drift_error.model = "SONOS"
+    params.simulation.useGPU = True
+    params.simulation.gpu_id = gpu_id
+    return params
+
 class Validator():
     def __init__(self, config):
         """
@@ -28,7 +54,7 @@ class Validator():
         torch.cuda.set_device(config.device) if torch.cuda.is_available() and config.cuda else None
 
         self.index_qualitative = index_qualitative.dict_test
-        self.name_test = str(datetime.datetime.now())[:19]
+        self.name_test = str(datetime.datetime.now())[:19].replace(' ', '_').replace(':', '-')
         self.folder_test = 'test/' + self.name_test + '_' + config.info
         if not os.path.exists(self.folder_test):
             os.makedirs(self.folder_test)
@@ -112,6 +138,8 @@ class Validator():
         self.mem_n2n.to(self.device)
         self.mem_n2n.memory_past.to(self.device)
         self.mem_n2n.memory_fut.to(self.device)
+        if config.analog:
+            self.mem_n2n = from_torch(self.mem_n2n, non_ideal_params(config.device), bias_rows=1)
 
         self.EuclDistance = nn.PairwiseDistance(p=2)
         self.start_epoch = 0
