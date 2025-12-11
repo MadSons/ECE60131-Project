@@ -1,8 +1,10 @@
-torch 
-torchvision
+torch==2.4.1 --index-url https://download.pytorch.org/whl/cu118
+torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu118
+torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu118
 numpy
 matplotlib
 tqdm
 opencv-python
 tensorboardX
+scipy
 cupy-cuda11x
