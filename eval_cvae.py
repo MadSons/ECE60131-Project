@@ -318,9 +318,9 @@ class ValidatorCVAE:
                 horizon40s += torch.sum(best_distances[:, 39]).item()
 
                 # ---------------- Save up to 10 qualitative examples ----------------
-                """batch_size = past.shape[0]
+                batch_size = past.shape[0]
                 for i in range(batch_size):
-                    if global_counter in self.example_ids and saved_count < 10:
+                    if global_counter in self.example_ids and saved_count < 5:
 
                         best_k = index_min[i].item()
                         best_pred = pred[i, best_k]                   # [T, 2]
@@ -348,7 +348,7 @@ class ValidatorCVAE:
 
                         saved_count += 1
 
-                    global_counter += 1"""
+                    global_counter += 1
 
         # Normalize by dataset size
         metrics = {
