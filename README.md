@@ -169,6 +169,8 @@ I used Python 3.10
 pip install -r requirements.txt
 ```
 
+You possibly have to change cupy-cuda11x to cupy or another version based on your cuda version.
+
 ### Initialize CrossSim Submodule
 
 ```bash
